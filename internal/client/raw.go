@@ -1,0 +1,41 @@
+package client
+
+import (
+	"context"
+
+	"github.com/pingcap/kvproto/pkg/kvrpcpb"
+	"github.com/tikv/client-go/v2/rawkv"
+)
+
+type rawClient struct {
+	client *rawkv.Client
+}
+
+var _ Client = (*rawClient)(nil)
+
+func newRawClient(addrs []string, apiVersion kvrpcpb.APIVersion) (*rawClient, error) {
+	client, err := rawkv.NewClientWithOpts(context.Background(), addrs, rawkv.WithAPIVersion(apiVersion))
+	if err != nil {
+		return nil, err
+	}
+
+	return &rawClient{
+		client: client,
+	}, nil
+}
+
+func (c *rawClient) Put(ctx context.Context, key, value []byte) error {
+	return c.client.Put(ctx, key, value)
+}
+
+func (c *rawClient) Get(ctx context.Context, key []byte) ([]byte, error) {
+	return c.client.Get(ctx, key)
+}
+
+func (c *rawClient) Delete(ctx context.Context, key []byte) error {
+	return c.client.Delete(ctx, key)
+}
+
+func (c *rawClient) Close(ctx context.Context) error {
+	return c.client.Close()
+}
