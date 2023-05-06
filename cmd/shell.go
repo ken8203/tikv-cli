@@ -2,14 +2,12 @@ package cmd
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"os"
 	"strings"
 
 	"github.com/ken8203/tikv-cli/internal/terminal"
 	"github.com/spf13/cobra"
-	tikverror "github.com/tikv/client-go/v2/error"
 )
 
 // shellRunE is the entry of shell command.
@@ -23,55 +21,43 @@ func shellRunE(cmd *cobra.Command, _ []string) error {
 	executeFn := func(ctx context.Context, command string, args ...string) {
 		switch strings.ToLower(command) {
 		case "put":
-			if len(args) < 2 {
-				fmt.Fprintln(os.Stdout, "(error) ERR wrong number of arguments for 'PUT' command")
+			if err := put(client, ctx, args); err != nil {
+				fmt.Fprintln(os.Stdout, err.Error())
 				break
 			}
 
-			if err := client.Put(ctx, []byte(args[0]), []byte(args[1])); err != nil {
-				fmt.Fprintln(os.Stdout, err.Error())
-			}
+			fmt.Fprintln(os.Stdout, "OK")
+			break
+
 		case "get":
-			if len(args) < 1 {
-				fmt.Fprintln(os.Stdout, "(error) ERR wrong number of arguments for 'GET' command")
-				break
-			}
-
-			value, err := client.Get(ctx, []byte(args[0]))
+			value, err := get(client, ctx, args)
 			if err != nil {
-				if errors.Is(err, tikverror.ErrNotExist) {
-					fmt.Fprintln(os.Stdout, "(nil)")
-					break
-				}
 				fmt.Fprintln(os.Stdout, err.Error())
+				break
 			}
 
 			fmt.Fprintln(os.Stdout, string(value))
+			break
+
 		case "delete":
-			if len(args) < 1 {
-				fmt.Fprintln(os.Stdout, "(error) ERR wrong number of arguments for 'DELETE' command")
-				break
-			}
-
-			if err := client.Delete(ctx, []byte(args[0])); err != nil {
+			if err := delete(client, ctx, args); err != nil {
 				fmt.Fprintln(os.Stdout, err.Error())
-			}
-		case "ttl":
-			if Mode == "txn" {
-				fmt.Fprintln(os.Stdout, "(error) ERR 'TTL' command is not supported in transaction mode")
-				break
-			}
-			if len(args) < 1 {
-				fmt.Fprintln(os.Stdout, "(error) ERR wrong number of arguments for 'TTL' command")
 				break
 			}
 
-			ttl, err := client.TTL(ctx, []byte(args[0]))
+			fmt.Fprintln(os.Stdout, "OK")
+			break
+
+		case "ttl":
+			ttl, err := ttl(client, ctx, args)
 			if err != nil {
 				fmt.Fprintln(os.Stdout, err.Error())
+				break
 			}
 
 			fmt.Fprintln(os.Stdout, ttl)
+			break
+
 		default:
 			fmt.Fprintf(os.Stdout, "(error) ERR unknown command '%s'\n", command)
 		}

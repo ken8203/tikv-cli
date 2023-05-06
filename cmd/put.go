@@ -1,8 +1,10 @@
 package cmd
 
 import (
+	"context"
 	"fmt"
 
+	"github.com/ken8203/tikv-cli/internal/client"
 	"github.com/spf13/cobra"
 )
 
@@ -19,5 +21,16 @@ func putRunE(cmd *cobra.Command, args []string) error {
 	}
 	defer client.Close(cmd.Context())
 
-	return client.Put(cmd.Context(), []byte(args[0]), []byte(args[1]))
+	return put(client, cmd.Context(), args)
+}
+
+func put(client client.Client, ctx context.Context, args []string) error {
+	if len(args) < 2 {
+		return fmt.Errorf("%w 'PUT'", ErrInvalidArgs)
+	}
+
+	if err := client.Put(ctx, []byte(args[0]), []byte(args[1])); err != nil {
+		return err
+	}
+	return nil
 }

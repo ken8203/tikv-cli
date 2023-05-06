@@ -1,8 +1,10 @@
 package cmd
 
 import (
+	"context"
 	"fmt"
 
+	"github.com/ken8203/tikv-cli/internal/client"
 	"github.com/spf13/cobra"
 )
 
@@ -20,5 +22,13 @@ func deleteRunE(cmd *cobra.Command, args []string) error {
 	}
 	defer client.Close(cmd.Context())
 
-	return client.Delete(cmd.Context(), []byte(args[0]))
+	return delete(client, cmd.Context(), args)
+}
+
+func delete(client client.Client, ctx context.Context, args []string) error {
+	if len(args) < 1 {
+		return fmt.Errorf("%w 'DELETE'", ErrInvalidArgs)
+	}
+
+	return client.Delete(ctx, []byte(args[0]))
 }
