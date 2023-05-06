@@ -1,0 +1,36 @@
+version: '3.8'
+
+services:
+  pd0:
+    image: pingcap/pd:v6.5.0
+    network_mode: host
+    ports:
+      - 2379:2379
+      - 2380:2380
+    command:
+      - --name=pd0
+      - --client-urls=http://0.0.0.0:2379
+      - --peer-urls=http://0.0.0.0:2380
+      - --advertise-client-urls=http://127.0.0.1:2379
+      - --advertise-peer-urls=http://127.0.0.1:2380
+      - --initial-cluster=pd0=http://127.0.0.1:2380
+      - --data-dir=/data/pd0
+      - --log-file=/logs/pd0.log
+    restart: on-failure
+  tikv0:
+    image: pingcap/tikv:v6.5.0
+    network_mode: host
+    ports:
+      - 20160:20160
+    volumes:
+      - ./hack/config/tikv.toml:/tikv.toml:ro
+    command:
+      - --config=/tikv.toml
+      - --addr=0.0.0.0:20160
+      - --advertise-addr=127.0.0.1:20160
+      - --data-dir=/data/tikv0
+      - --pd=127.0.0.1:2379
+      - --log-file=/logs/tikv0.log
+    depends_on:
+      - pd0
+    restart: on-failure
