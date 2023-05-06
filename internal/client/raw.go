@@ -36,6 +36,18 @@ func (c *rawClient) Delete(ctx context.Context, key []byte) error {
 	return c.client.Delete(ctx, key)
 }
 
+func (c *rawClient) TTL(ctx context.Context, key []byte) (uint64, error) {
+	ttl, err := c.client.GetKeyTTL(ctx, key)
+	if err != nil {
+		return 0, err
+	}
+
+	if ttl != nil {
+		return *ttl, nil
+	}
+	return 0, nil
+}
+
 func (c *rawClient) Close(ctx context.Context) error {
 	return c.client.Close()
 }

@@ -56,6 +56,22 @@ func shellRunE(cmd *cobra.Command, _ []string) error {
 			if err := client.Delete(ctx, []byte(args[0])); err != nil {
 				fmt.Fprintln(os.Stdout, err.Error())
 			}
+		case "ttl":
+			if Mode == "txn" {
+				fmt.Fprintln(os.Stdout, "(error) ERR 'TTL' command is not supported in transaction mode")
+				break
+			}
+			if len(args) < 1 {
+				fmt.Fprintln(os.Stdout, "(error) ERR wrong number of arguments for 'TTL' command")
+				break
+			}
+
+			ttl, err := client.TTL(ctx, []byte(args[0]))
+			if err != nil {
+				fmt.Fprintln(os.Stdout, err.Error())
+			}
+
+			fmt.Fprintln(os.Stdout, ttl)
 		default:
 			fmt.Fprintf(os.Stdout, "(error) ERR unknown command '%s'\n", command)
 		}

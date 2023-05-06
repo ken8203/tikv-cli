@@ -2,6 +2,7 @@ package client
 
 import (
 	"context"
+	"errors"
 
 	"github.com/pingcap/kvproto/pkg/kvrpcpb"
 	"github.com/tikv/client-go/v2/txnkv"
@@ -57,6 +58,10 @@ func (c *txnClient) Delete(ctx context.Context, key []byte) error {
 	}
 
 	return tx.Commit(ctx)
+}
+
+func (c *txnClient) TTL(ctx context.Context, key []byte) (uint64, error) {
+	return 0, errors.New("TTL is not supported in txn mode")
 }
 
 func (c *txnClient) Close(ctx context.Context) error {

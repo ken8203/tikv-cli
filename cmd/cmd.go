@@ -40,7 +40,7 @@ func init() {
 	rootCmd.PersistentFlags().StringVarP(&APIVersion, "api-version", "a", "v2", "API version")
 	rootCmd.PersistentFlags().Bool("help", false, "help for tikv-cli")
 
-	rootCmd.AddCommand(versionCmd, putCmd, getCmd, deleteCmd)
+	rootCmd.AddCommand(versionCmd, putCmd, getCmd, deleteCmd, ttlCmd)
 }
 
 func Execute() {
