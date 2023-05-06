@@ -21,7 +21,7 @@ func shellRunE(cmd *cobra.Command, _ []string) error {
 	executeFn := func(ctx context.Context, command string, args ...string) {
 		switch strings.ToLower(command) {
 		case "put":
-			if err := put(client, ctx, args); err != nil {
+			if err := put(ctx, args); err != nil {
 				fmt.Fprintln(os.Stdout, err.Error())
 				break
 			}
@@ -30,7 +30,7 @@ func shellRunE(cmd *cobra.Command, _ []string) error {
 			break
 
 		case "get":
-			value, err := get(client, ctx, args)
+			value, err := get(ctx, args)
 			if err != nil {
 				fmt.Fprintln(os.Stdout, err.Error())
 				break
@@ -40,7 +40,7 @@ func shellRunE(cmd *cobra.Command, _ []string) error {
 			break
 
 		case "delete":
-			if err := delete(client, ctx, args); err != nil {
+			if err := delete(ctx, args); err != nil {
 				fmt.Fprintln(os.Stdout, err.Error())
 				break
 			}
@@ -49,7 +49,7 @@ func shellRunE(cmd *cobra.Command, _ []string) error {
 			break
 
 		case "ttl":
-			ttl, err := ttl(client, ctx, args)
+			ttl, err := ttl(ctx, args)
 			if err != nil {
 				fmt.Fprintln(os.Stdout, err.Error())
 				break

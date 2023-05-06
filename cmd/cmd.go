@@ -21,13 +21,26 @@ var (
 	APIVersion string
 )
 
+var c client.Client
+
 var rootCmd = &cobra.Command{
 	Use:   "tikv-cli",
 	Short: "Interact with TiKV cluster through PD",
-	PersistentPreRun: func(cmd *cobra.Command, args []string) {
+	PersistentPreRunE: func(cmd *cobra.Command, _ []string) (err error) {
+		if cmd.Name() == "help" || cmd.Name() == "version" {
+			return
+		}
 
+		c, err = newClient()
+		return
 	},
 	RunE: shellRunE,
+	PersistentPostRunE: func(cmd *cobra.Command, _ []string) error {
+		if c != nil {
+			return c.Close(cmd.Context())
+		}
+		return nil
+	},
 }
 
 func init() {
