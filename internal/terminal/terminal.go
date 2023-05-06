@@ -3,13 +3,14 @@ package terminal
 import (
 	"bufio"
 	"context"
+	"errors"
 	"fmt"
+	"io"
 	"os"
 	"strings"
-	"unicode"
 )
 
-type ExecuteFn func(ctx context.Context, command string)
+type ExecuteFn func(ctx context.Context, command string, args ...string)
 
 type Terminal struct {
 	placeholder string
@@ -29,23 +30,23 @@ func (t *Terminal) Prompt(ctx context.Context) error {
 		fmt.Fprint(os.Stdout, t.placeholder+"> ")
 		s, err := r.ReadString('\n')
 		if err != nil {
+			if errors.Is(err, io.EOF) {
+				fmt.Fprintln(os.Stdout, "\nbye bye")
+				return nil
+			}
+
 			return err
 		}
 
-		t.executeFn(ctx, TrimSpace(s))
+		substrings := strings.Fields(s)
+		if len(substrings) == 0 {
+			continue
+		}
+
+		t.executeFn(ctx, substrings[0], substrings[1:]...)
 	}
 }
 
 func (t *Terminal) SetPlaceholder(placeholder string) {
 	t.placeholder = placeholder
-}
-
-func TrimSpace(s string) string {
-	return strings.TrimFunc(s, func(r rune) bool {
-		return unicode.IsSpace(r) ||
-			r == '\u200B' || // zero-width space
-			r == '\u200C' || // zero-width non-joiner
-			r == '\u200D' || // zero-width joiner
-			r == '\uFEFF' // zero-width no-break space
-	})
 }

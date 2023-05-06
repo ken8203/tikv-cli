@@ -13,36 +13,31 @@ import (
 )
 
 // shellRunE is the entry of shell command.
-func shellRunE(cmd *cobra.Command, args []string) error {
+func shellRunE(cmd *cobra.Command, _ []string) error {
 	client, err := newClient()
 	if err != nil {
 		return fmt.Errorf("new client: %v", err)
 	}
 	defer client.Close(cmd.Context())
 
-	executeFn := func(ctx context.Context, command string) {
-		fields := strings.Fields(command)
-		if len(fields) == 0 {
-			return
-		}
-
-		switch strings.ToLower(fields[0]) {
+	executeFn := func(ctx context.Context, command string, args ...string) {
+		switch strings.ToLower(command) {
 		case "put":
-			if len(fields) != 3 {
-				fmt.Fprintln(os.Stdout, "(error) ERR wrong number of arguments for 'put' command")
+			if len(args) < 2 {
+				fmt.Fprintln(os.Stdout, "(error) ERR wrong number of arguments for 'PUT' command")
 				break
 			}
 
-			if err := client.Put(ctx, []byte(fields[1]), []byte(fields[2])); err != nil {
+			if err := client.Put(ctx, []byte(args[0]), []byte(args[1])); err != nil {
 				fmt.Fprintln(os.Stdout, err.Error())
 			}
 		case "get":
-			if len(fields) != 2 {
-				fmt.Fprintln(os.Stdout, "(error) ERR wrong number of arguments for 'get' command")
+			if len(args) < 1 {
+				fmt.Fprintln(os.Stdout, "(error) ERR wrong number of arguments for 'GET' command")
 				break
 			}
 
-			value, err := client.Get(ctx, []byte(fields[1]))
+			value, err := client.Get(ctx, []byte(args[0]))
 			if err != nil {
 				if errors.Is(err, tikverror.ErrNotExist) {
 					fmt.Fprintln(os.Stdout, "(nil)")
@@ -53,14 +48,16 @@ func shellRunE(cmd *cobra.Command, args []string) error {
 
 			fmt.Fprintln(os.Stdout, string(value))
 		case "delete":
-			if len(fields) != 2 {
-				fmt.Fprintln(os.Stdout, "(error) ERR wrong number of arguments for 'delete' command")
+			if len(args) < 1 {
+				fmt.Fprintln(os.Stdout, "(error) ERR wrong number of arguments for 'DELETE' command")
 				break
 			}
 
-			if err := client.Delete(ctx, []byte(fields[1])); err != nil {
+			if err := client.Delete(ctx, []byte(args[0])); err != nil {
 				fmt.Fprintln(os.Stdout, err.Error())
 			}
+		default:
+			fmt.Fprintf(os.Stdout, "(error) ERR unknown command '%s'\n", command)
 		}
 	}
 
