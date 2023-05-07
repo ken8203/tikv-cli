@@ -19,6 +19,8 @@ var (
 	Mode string
 	// APIVersion is the API version: v1/v1ttl/v2
 	APIVersion string
+	// Debug determines whether to enable logging in tikv/client-go.
+	Debug bool
 )
 
 var c client.Client
@@ -29,6 +31,11 @@ var rootCmd = &cobra.Command{
 	PersistentPreRunE: func(cmd *cobra.Command, _ []string) (err error) {
 		if cmd.Name() == "help" || cmd.Name() == "version" {
 			return
+		}
+
+		if !Debug {
+			// Disable logging in tikv/client-go
+			pingcaplog.ReplaceGlobals(zap.NewNop(), nil)
 		}
 
 		c, err = newClient()
@@ -44,14 +51,12 @@ var rootCmd = &cobra.Command{
 }
 
 func init() {
-	// Disable logging in tikv/client-go
-	pingcaplog.ReplaceGlobals(zap.NewNop(), nil)
-
 	rootCmd.PersistentFlags().StringVarP(&Host, "host", "h", "localhost", "PD host address")
 	rootCmd.PersistentFlags().StringVarP(&Port, "port", "p", "2379", "PD port")
 	rootCmd.PersistentFlags().StringVarP(&Mode, "mode", "m", "txn", "Client mode")
 	rootCmd.PersistentFlags().StringVarP(&APIVersion, "api-version", "a", "v2", "API version")
 	rootCmd.PersistentFlags().Bool("help", false, "help for tikv-cli")
+	rootCmd.PersistentFlags().BoolVar(&Debug, "debug", false, "debug mode")
 
 	rootCmd.AddCommand(versionCmd, putCmd, getCmd, deleteCmd, ttlCmd)
 }
