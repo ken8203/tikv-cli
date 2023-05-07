@@ -1,52 +1,81 @@
 package terminal
 
 import (
-	"bufio"
 	"context"
-	"errors"
-	"fmt"
 	"io"
 	"os"
 	"strings"
+
+	"golang.org/x/term"
 )
 
-type ExecuteFn func(ctx context.Context, command string, args ...string)
-
 type Terminal struct {
-	placeholder string
-	executeFn   ExecuteFn
+	*term.Terminal
 }
 
-func New(placeholder string, executeFn ExecuteFn) *Terminal {
+func New(prompt string) *Terminal {
 	return &Terminal{
-		placeholder: placeholder,
-		executeFn:   executeFn,
+		Terminal: term.NewTerminal(os.Stdin, prompt+"> "),
 	}
 }
 
-func (t *Terminal) Prompt(ctx context.Context) error {
-	r := bufio.NewReader(os.Stdin)
-	for {
-		fmt.Fprint(os.Stdout, t.placeholder+"> ")
-		s, err := r.ReadString('\n')
-		if err != nil {
-			if errors.Is(err, io.EOF) {
-				fmt.Fprintln(os.Stdout, "\nbye bye")
-				return nil
+func (t *Terminal) Enter(ctx context.Context) (<-chan *Command, <-chan error) {
+	errCh := make(chan error, 1)
+
+	state, err := term.MakeRaw(int(os.Stdin.Fd()))
+	if err != nil {
+		errCh <- err
+		return nil, errCh
+	}
+
+	ch := make(chan *Command)
+	go func() {
+		defer term.Restore(int(os.Stdin.Fd()), state)
+		defer func() {
+			close(ch)
+			close(errCh)
+		}()
+
+		for {
+			select {
+			case <-ctx.Done():
+				errCh <- ctx.Err()
+				return
+			default:
+				line, err := t.ReadLine()
+				if err != nil {
+					if err == io.EOF {
+						return
+					}
+
+					errCh <- err
+					return
+				}
+				if line == "" {
+					continue
+				}
+
+				ch <- newCommand(line)
 			}
-
-			return err
 		}
+	}()
 
-		substrings := strings.Fields(s)
-		if len(substrings) == 0 {
-			continue
-		}
-
-		t.executeFn(ctx, substrings[0], substrings[1:]...)
-	}
+	return ch, errCh
 }
 
-func (t *Terminal) SetPlaceholder(placeholder string) {
-	t.placeholder = placeholder
+func (t *Terminal) SetPrompt(prompt string) {
+	t.SetPrompt(prompt + "> ")
+}
+
+type Command struct {
+	Cmd  string
+	Args []string
+}
+
+func newCommand(line string) *Command {
+	substrings := strings.Fields(line)
+	return &Command{
+		Cmd:  substrings[0],
+		Args: substrings[1:],
+	}
 }

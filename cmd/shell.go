@@ -1,9 +1,7 @@
 package cmd
 
 import (
-	"context"
 	"fmt"
-	"os"
 	"strings"
 
 	"github.com/ken8203/tikv-cli/internal/terminal"
@@ -12,57 +10,54 @@ import (
 
 // shellRunE is the entry of shell command.
 func shellRunE(cmd *cobra.Command, _ []string) error {
-	client, err := newClient()
-	if err != nil {
-		return fmt.Errorf("new client: %v", err)
-	}
-	defer client.Close(cmd.Context())
+	ctx := cmd.Context()
+	term := terminal.New(addr(Host, Port))
 
-	executeFn := func(ctx context.Context, command string, args ...string) {
-		switch strings.ToLower(command) {
-		case "put":
-			if err := put(ctx, args); err != nil {
-				fmt.Fprintln(os.Stdout, err.Error())
+	ch, errCh := term.Enter(ctx)
+	for command := range ch {
+		switch strings.ToLower(command.Cmd) {
+		case putCmd.Name():
+			if err := put(ctx, command.Args); err != nil {
+				fmt.Fprintln(term, err.Error())
 				break
 			}
 
-			fmt.Fprintln(os.Stdout, "OK")
+			fmt.Fprintln(term, "OK")
 			break
 
-		case "get":
-			value, err := get(ctx, args)
+		case getCmd.Name():
+			value, err := get(ctx, command.Args)
 			if err != nil {
-				fmt.Fprintln(os.Stdout, err.Error())
+				fmt.Fprintln(term, err.Error())
 				break
 			}
 
-			fmt.Fprintln(os.Stdout, string(value))
+			fmt.Fprintln(term, string(value))
 			break
 
-		case "delete":
-			if err := delete(ctx, args); err != nil {
-				fmt.Fprintln(os.Stdout, err.Error())
+		case deleteCmd.Name():
+			if err := delete(ctx, command.Args); err != nil {
+				fmt.Fprintln(term, err.Error())
 				break
 			}
 
-			fmt.Fprintln(os.Stdout, "OK")
+			fmt.Fprintln(term, "OK")
 			break
 
-		case "ttl":
-			ttl, err := ttl(ctx, args)
+		case ttlCmd.Name():
+			ttl, err := ttl(ctx, command.Args)
 			if err != nil {
-				fmt.Fprintln(os.Stdout, err.Error())
+				fmt.Fprintln(term, err.Error())
 				break
 			}
 
-			fmt.Fprintln(os.Stdout, ttl)
+			fmt.Fprintln(term, ttl)
 			break
 
 		default:
-			fmt.Fprintf(os.Stdout, "(error) ERR unknown command '%s'\n", command)
+			fmt.Fprintf(term, "(error) ERR unknown command '%s'\n", command)
 		}
 	}
 
-	return terminal.New(addr(Host, Port), executeFn).
-		Prompt(cmd.Context())
+	return <-errCh
 }
