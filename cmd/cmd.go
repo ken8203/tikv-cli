@@ -27,6 +27,7 @@ var c client.Client
 
 var rootCmd = &cobra.Command{
 	Use:   "tikv-cli",
+	Long:  `A CLI for TiKV cluster through PD. You can enter the interactive shell by root command.`,
 	Short: "Interact with TiKV cluster through PD",
 	PersistentPreRunE: func(cmd *cobra.Command, _ []string) (err error) {
 		if cmd.Name() == "help" || cmd.Name() == "version" {
@@ -53,10 +54,10 @@ var rootCmd = &cobra.Command{
 func init() {
 	rootCmd.PersistentFlags().StringVarP(&Host, "host", "h", "localhost", "PD host address")
 	rootCmd.PersistentFlags().StringVarP(&Port, "port", "p", "2379", "PD port")
-	rootCmd.PersistentFlags().StringVarP(&Mode, "mode", "m", "txn", "Client mode")
-	rootCmd.PersistentFlags().StringVarP(&APIVersion, "api-version", "a", "v2", "API version")
-	rootCmd.PersistentFlags().Bool("help", false, "help for tikv-cli")
-	rootCmd.PersistentFlags().BoolVar(&Debug, "debug", false, "debug mode")
+	rootCmd.PersistentFlags().StringVarP(&Mode, "mode", "m", "txn", "Client mode. raw/txn")
+	rootCmd.PersistentFlags().StringVarP(&APIVersion, "api-version", "a", "v2", "API version. v1/v1ttl/v2")
+	rootCmd.PersistentFlags().Bool("help", false, "Help for tikv-cli")
+	rootCmd.PersistentFlags().BoolVar(&Debug, "debug", false, "Debug determines whether to enable logging in tikv/client-go")
 
 	rootCmd.AddCommand(versionCmd, putCmd, getCmd, deleteCmd, ttlCmd)
 }
