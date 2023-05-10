@@ -23,7 +23,7 @@ services:
     ports:
       - 20160:20160
     volumes:
-      - ./hack/config/tikv.toml:/tikv.toml:ro
+      - ./docker/config/tikv.toml:/tikv.toml:ro
     command:
       - --config=/tikv.toml
       - --addr=0.0.0.0:20160

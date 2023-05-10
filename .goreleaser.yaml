@@ -1,0 +1,99 @@
+# This is an example .goreleaser.yml file with some sensible defaults.
+# Make sure to check the documentation at https://goreleaser.com
+before:
+  hooks:
+    # You may remove this if you don't use go modules.
+    - go mod tidy
+builds:
+  - main: ./main.go
+    binary: tikv-cli
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - darwin
+      - windows
+      - linux
+    ignore:
+      - goarch: 386
+    ldflags:
+      - -s -w -X main.Version={{ .Tag }}
+    overrides:
+      - goos: darwin
+        goarch: arm64
+        env:
+          - CGO_ENABLED=1
+      - goos: darwin
+        goarch: amd64
+        goamd64: v1
+        env:
+          - CGO_ENABLED=1
+dockers:
+  - use: buildx
+    goos: linux
+    goarch: amd64
+    dockerfile: docker/Dockerfile.goreleaser
+    image_templates:
+      - ken8203/tikv-cli:{{ .Tag }}-amd64
+      - ken8203/tikv-cli:{{ .Tag }}-latest-amd64
+    build_flag_templates:
+      - --platform=linux/amd64
+      - --builder=colima
+      - --label=org.opencontainers.image.title={{ .ProjectName }}
+      - --label=org.opencontainers.image.description="CLI tool for TiKV with an interactive shell."
+      - --label=org.opencontainers.image.url=https://github.com/ken8203/{{ .ProjectName }}
+      - --label=org.opencontainers.image.source=https://github.com/ken8203/{{ .ProjectName }}
+      - --label=org.opencontainers.image.version={{ .Tag }}
+      - --label=org.opencontainers.image.created={{ time "2006-01-02T15:04:05Z07:00" }}
+      - --label=org.opencontainers.image.revision={{ .FullCommit }}
+      - --label=org.opencontainers.image.licenses=Apache-2.0
+  - use: buildx
+    goos: linux
+    goarch: arm64
+    dockerfile: docker/Dockerfile.goreleaser
+    image_templates:
+      - ken8203/tikv-cli:{{ .Tag }}-arm64
+      - ken8203/tikv-cli:{{ .Tag }}-latest-arm64
+    build_flag_templates:
+      - --platform=linux/arm64
+      - --builder=colima
+      - --label=org.opencontainers.image.title={{ .ProjectName }}
+      - --label=org.opencontainers.image.description="CLI tool for TiKV with an interactive shell."
+      - --label=org.opencontainers.image.url=https://github.com/ken8203/{{ .ProjectName }}
+      - --label=org.opencontainers.image.source=https://github.com/ken8203/{{ .ProjectName }}
+      - --label=org.opencontainers.image.version={{ .Tag }}
+      - --label=org.opencontainers.image.created={{ time "2006-01-02T15:04:05Z07:00" }}
+      - --label=org.opencontainers.image.revision={{ .FullCommit }}
+      - --label=org.opencontainers.image.licenses=Apache-2.0
+docker_manifests:
+  - name_template: ken8203/tikv-cli:{{ .Tag }}
+    image_templates:
+      - ken8203/tikv-cli:{{ .Tag }}-amd64
+      - ken8203/tikv-cli:{{ .Tag }}-arm64
+  - name_template: ken8203/tikv-cli:latest
+    image_templates:
+      - ken8203/tikv-cli:{{ .Tag }}-latest-amd64
+      - ken8203/tikv-cli:{{ .Tag }}-latest-arm64
+archives:
+  - format: tar.gz
+    # this name template makes the OS and Arch compatible with the results of uname.
+    name_template: >-
+      {{ .ProjectName }}_
+      {{- title .Os }}_
+      {{- if eq .Arch "amd64" }}x86_64
+      {{- else if eq .Arch "386" }}i386
+      {{- else }}{{ .Arch }}{{ end }}
+      {{- if .Arm }}v{{ .Arm }}{{ end }}
+    # use zip for windows archives
+    format_overrides:
+      - goos: windows
+        format: zip
+checksum:
+  name_template: 'checksums.txt'
+snapshot:
+  name_template: '{{ .Tag }}-next-{{.ShortCommit}}'
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - '^docs:'
+      - '^test:'
