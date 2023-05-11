@@ -64,6 +64,32 @@ func (c *txnClient) TTL(ctx context.Context, key []byte) (uint64, error) {
 	return 0, errors.New("TTL is not supported in txn mode")
 }
 
+func (c *txnClient) Scan(ctx context.Context, start []byte, limit int) ([]Entry, error) {
+	tx, err := c.client.Begin()
+	if err != nil {
+		return nil, err
+	}
+	defer tx.Commit(ctx)
+
+	it, err := tx.Iter(start, nil)
+	if err != nil {
+		return nil, err
+	}
+	defer it.Close()
+
+	var entries []Entry
+	for it.Valid() && limit > 0 {
+		entries = append(entries, Entry{
+			K: it.Key()[:],
+			V: it.Value()[:],
+		})
+		limit--
+		it.Next()
+	}
+
+	return entries, nil
+}
+
 func (c *txnClient) Close(ctx context.Context) error {
 	return c.client.Close()
 }

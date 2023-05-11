@@ -48,6 +48,23 @@ func (c *rawClient) TTL(ctx context.Context, key []byte) (uint64, error) {
 	return 0, nil
 }
 
+func (c *rawClient) Scan(ctx context.Context, start []byte, limit int) ([]Entry, error) {
+	keys, values, err := c.client.Scan(ctx, start, nil, limit)
+	if err != nil {
+		return nil, err
+	}
+
+	entries := make([]Entry, 0, len(keys))
+	for i, key := range keys {
+		entries[i] = Entry{
+			K: key,
+			V: values[i],
+		}
+	}
+
+	return entries, nil
+}
+
 func (c *rawClient) Close(ctx context.Context) error {
 	return c.client.Close()
 }

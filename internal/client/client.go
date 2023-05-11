@@ -27,6 +27,7 @@ type Client interface {
 	Get(ctx context.Context, key []byte) ([]byte, error)
 	Delete(ctx context.Context, key []byte) error
 	TTL(ctx context.Context, key []byte) (uint64, error)
+	Scan(ctx context.Context, start []byte, limit int) ([]Entry, error)
 	Close(ctx context.Context) error
 }
 
