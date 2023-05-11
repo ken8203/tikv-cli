@@ -59,7 +59,7 @@ func init() {
 	rootCmd.PersistentFlags().Bool("help", false, "Help for tikv-cli")
 	rootCmd.PersistentFlags().BoolVar(&Debug, "debug", false, "Debug determines whether to enable logging in tikv/client-go")
 
-	rootCmd.AddCommand(versionCmd, putCmd, getCmd, deleteCmd, ttlCmd)
+	rootCmd.AddCommand(versionCmd, putCmd, getCmd, deleteCmd, ttlCmd, scanCmd)
 }
 
 func Execute() {
