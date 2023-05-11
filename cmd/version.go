@@ -1,7 +1,8 @@
 package cmd
 
 import (
-	"os"
+	"fmt"
+	"io"
 
 	"github.com/spf13/cobra"
 )
@@ -12,8 +13,12 @@ var Version string
 var versionCmd = &cobra.Command{
 	Use:   "version",
 	Short: "Print the version number of tikv-cli",
-	RunE: func(_ *cobra.Command, _ []string) error {
-		_, err := os.Stdout.Write([]byte("tikv-cli " + Version))
-		return err
+	RunE: func(cmd *cobra.Command, _ []string) error {
+		return version(cmd.OutOrStdout())
 	},
+}
+
+func version(w io.Writer) error {
+	_, err := fmt.Fprintln(w, "tikv-cli", Version)
+	return err
 }

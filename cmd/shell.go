@@ -17,41 +17,43 @@ func shellRunE(cmd *cobra.Command, _ []string) error {
 	for command := range ch {
 		switch strings.ToLower(command.Cmd) {
 		case putCmd.Name():
-			if err := put(ctx, command.Args); err != nil {
+			if err := put(ctx, term, command.Args); err != nil {
 				fmt.Fprintln(term, err.Error())
 				break
 			}
 
-			fmt.Fprintln(term, "OK")
 			break
 
 		case getCmd.Name():
-			value, err := get(ctx, command.Args)
-			if err != nil {
+			if err := get(ctx, term, command.Args); err != nil {
 				fmt.Fprintln(term, err.Error())
 				break
 			}
 
-			fmt.Fprintln(term, string(value))
 			break
 
 		case deleteCmd.Name():
-			if err := delete(ctx, command.Args); err != nil {
+			if err := delete(ctx, term, command.Args); err != nil {
 				fmt.Fprintln(term, err.Error())
 				break
 			}
 
-			fmt.Fprintln(term, "OK")
 			break
 
 		case ttlCmd.Name():
-			ttl, err := ttl(ctx, command.Args)
-			if err != nil {
+			if err := ttl(ctx, term, command.Args); err != nil {
 				fmt.Fprintln(term, err.Error())
 				break
 			}
 
-			fmt.Fprintln(term, ttl)
+			break
+
+		case versionCmd.Name():
+			if err := version(term); err != nil {
+				fmt.Fprintln(term, err.Error())
+				break
+			}
+
 			break
 
 		default:
