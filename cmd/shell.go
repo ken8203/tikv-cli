@@ -64,6 +64,13 @@ func shellRunE(cmd *cobra.Command, _ []string) error {
 
 			break
 
+		case "use":
+			if err := use(ctx, term, command.Args); err != nil {
+				fmt.Fprintln(term, err.Error())
+				break
+			}
+			break
+
 		default:
 			fmt.Fprintf(term, "(error) ERR unknown command '%s'\n", command)
 		}
