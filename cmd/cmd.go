@@ -16,8 +16,6 @@ var (
 	Port string
 	// Mode is the client mode: raw/txn
 	Mode string
-	// Keyspace name for tikv V2 storage
-	KeySpace string
 	// APIVersion is the API version: v1/v1ttl/v2
 	APIVersion string
 	// Debug determines whether to enable logging in tikv/client-go.
@@ -54,7 +52,6 @@ func init() {
 	rootCmd.PersistentFlags().StringVarP(&Host, "host", "h", "localhost", "PD host address")
 	rootCmd.PersistentFlags().StringVarP(&Port, "port", "p", "2379", "PD port")
 	rootCmd.PersistentFlags().StringVarP(&Mode, "mode", "m", "txn", "Client mode. raw/txn")
-	rootCmd.PersistentFlags().StringVarP(&KeySpace, "keyspace", "k", "", "Tikv keyspace, default is empty")
 	rootCmd.PersistentFlags().StringVarP(&APIVersion, "api-version", "a", "v2", "API version. v1/v1ttl/v2")
 	rootCmd.PersistentFlags().Bool("help", false, "Help for tikv-cli")
 	rootCmd.PersistentFlags().BoolVar(&Debug, "debug", false, "Debug determines whether to enable logging in tikv/client-go")

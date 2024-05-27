@@ -31,12 +31,12 @@ type Client interface {
 	Close(ctx context.Context) error
 }
 
-func New(addrs []string, mode Mode, apiVersion APIVersion, keySpace string) (Client, error) {
+func New(addrs []string, mode Mode, apiVersion APIVersion) (Client, error) {
 	switch mode {
 	case ModeTxn:
-		return newTxnClient(addrs, kvrpcpb.APIVersion(apiVersion), keySpace)
+		return newTxnClient(addrs, kvrpcpb.APIVersion(apiVersion))
 	case ModeRaw:
-		return newRawClient(addrs, kvrpcpb.APIVersion(apiVersion), keySpace)
+		return newRawClient(addrs, kvrpcpb.APIVersion(apiVersion))
 	default:
 		return nil, fmt.Errorf("invalid mode: %s", mode)
 	}

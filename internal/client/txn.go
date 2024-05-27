@@ -14,8 +14,8 @@ type txnClient struct {
 
 var _ Client = (*txnClient)(nil)
 
-func newTxnClient(addrs []string, apiVersion kvrpcpb.APIVersion, keySpace string) (*txnClient, error) {
-	client, err := txnkv.NewClient(addrs, txnkv.WithAPIVersion(apiVersion), txnkv.WithKeyspace(keySpace))
+func newTxnClient(addrs []string, apiVersion kvrpcpb.APIVersion) (*txnClient, error) {
+	client, err := txnkv.NewClient(addrs, txnkv.WithAPIVersion(apiVersion))
 	if err != nil {
 		return nil, err
 	}
