@@ -27,6 +27,7 @@ Flags:
       --help                 Help for tikv-cli
   -h, --host string          PD host address (default "localhost")
   -m, --mode string          Client mode. raw/txn (default "txn")
+  -k, --keyspace string      Keyspace name. (default empty)
   -p, --port string          PD port (default "2379")
 
 Use "tikv-cli [command] --help" for more information about a command.
