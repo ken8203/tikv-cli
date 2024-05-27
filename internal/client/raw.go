@@ -13,8 +13,8 @@ type rawClient struct {
 
 var _ Client = (*rawClient)(nil)
 
-func newRawClient(addrs []string, apiVersion kvrpcpb.APIVersion) (*rawClient, error) {
-	client, err := rawkv.NewClientWithOpts(context.Background(), addrs, rawkv.WithAPIVersion(apiVersion))
+func newRawClient(addrs []string, apiVersion kvrpcpb.APIVersion, keySpace string) (*rawClient, error) {
+	client, err := rawkv.NewClientWithOpts(context.Background(), addrs, rawkv.WithAPIVersion(apiVersion), rawkv.WithKeyspace(keySpace))
 	if err != nil {
 		return nil, err
 	}

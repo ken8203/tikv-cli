@@ -18,7 +18,7 @@ func newClient() (client.Client, error) {
 		v = client.APIVersion2
 	}
 
-	c, err := client.New([]string{addr(Host, Port)}, client.Mode(Mode), v)
+	c, err := client.New([]string{addr(Host, Port)}, client.Mode(Mode), v, KeySpace)
 	if err != nil {
 		return nil, err
 	}
